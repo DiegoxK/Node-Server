@@ -2,10 +2,11 @@
   "name": "node-server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "ts-node index.ts",
-    "dev": "nodemon index.ts"
+    "start": "tsc && node ./dist/server.js",
+    "ts-node": "ts-node server.ts",
+    "dev": "nodemon server.ts"
   },
   "keywords": [],
   "author": "",
