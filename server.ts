@@ -6,6 +6,22 @@ import fs, { promises as fsPromises } from "fs";
 
 const PORT = process.env.PORT || 3500;
 
+const serveFile = async (
+  filePath: string,
+  contentType: string,
+  response: http.ServerResponse<http.IncomingMessage>
+) => {
+  try {
+    const data = await fsPromises.readFile(filePath, "utf8");
+    response.writeHead(200, { "Content-Type": contentType });
+    response.end(data);
+  } catch (error) {
+    console.log(error);
+    response.statusCode = 500;
+    response.end();
+  }
+};
+
 const server = http.createServer((req, res) => {
   console.log(req.method, req.url);
   const url = req.url || "/";
@@ -33,7 +49,7 @@ const server = http.createServer((req, res) => {
     case ".jpg":
       contentType = "image/jpg";
       break;
-    case "txt":
+    case ".txt":
       contentType = "text/plain";
       break;
     default:
@@ -52,13 +68,21 @@ const server = http.createServer((req, res) => {
   if (!extension && url.slice(-1) !== "/") filePath += ".html";
 
   const fileExists = fs.existsSync(filePath);
-
+  console.log(filePath);
   if (fileExists) {
-    //serve file
+    serveFile(filePath, contentType, res);
   } else {
-    console.log(path.parse(filePath));
-    //404
     //301 redirect
+    switch (path.parse(filePath).base) {
+      case "old-page.html":
+        res.writeHead(301, {
+          Location: "/new-page.html",
+        });
+        res.end();
+        break;
+      default:
+        serveFile(path.join(__dirname, "views", "404.html"), "text/html", res);
+    }
   }
 
   // if (req.url === "/" || req.url === "index.html") {
