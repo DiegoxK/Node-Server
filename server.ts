@@ -12,9 +12,15 @@ const serveFile = async (
   response: http.ServerResponse<http.IncomingMessage>
 ) => {
   try {
-    const data = await fsPromises.readFile(filePath, "utf8");
-    response.writeHead(200, { "Content-Type": contentType });
-    response.end(data);
+    const encoding: BufferEncoding = !contentType.includes("image")
+      ? "utf8"
+      : "binary";
+    const rawData = await fsPromises.readFile(filePath, encoding);
+    const data = rawData;
+    response.writeHead(filePath.includes("404.html") ? 404 : 200, {
+      "Content-Type": contentType,
+    });
+    response.end(data, encoding);
   } catch (error) {
     console.log(error);
     response.statusCode = 500;
@@ -23,7 +29,7 @@ const serveFile = async (
 };
 
 const server = http.createServer((req, res) => {
-  console.log(req.method, req.url);
+  console.log(req.method, req.url, "\n");
   const url = req.url || "/";
 
   const extension: string = path.extname(url);
@@ -45,6 +51,9 @@ const server = http.createServer((req, res) => {
       break;
     case ".png":
       contentType = "image/png";
+      break;
+    case ".webp":
+      contentType = "image/webp";
       break;
     case ".jpg":
       contentType = "image/jpg";
@@ -68,7 +77,7 @@ const server = http.createServer((req, res) => {
   if (!extension && url.slice(-1) !== "/") filePath += ".html";
 
   const fileExists = fs.existsSync(filePath);
-  console.log(filePath);
+  // console.log(filePath);
   if (fileExists) {
     serveFile(filePath, contentType, res);
   } else {
