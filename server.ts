@@ -4,6 +4,12 @@ import EventEmitter from "events";
 import logEvents from "./logEvents";
 import fs, { promises as fsPromises } from "fs";
 
+const myEmitter = new EventEmitter();
+
+myEmitter.on("log", (msg, fileName) => {
+  logEvents(msg, fileName);
+});
+
 const PORT = process.env.PORT || 3500;
 
 const serveFile = async (
@@ -21,8 +27,15 @@ const serveFile = async (
       "Content-Type": contentType,
     });
     response.end(data, encoding);
-  } catch (error) {
+
+    // throw new Error("Testing error handling");
+  } catch (error: unknown) {
     console.log(error);
+    if (error instanceof Error) {
+      myEmitter.emit("log", `${error.name}: ${error.message}`, "errLog.txt");
+    } else {
+      myEmitter.emit("log", "Unknown error occurred", "errLog.txt");
+    }
     response.statusCode = 500;
     response.end();
   }
@@ -30,6 +43,7 @@ const serveFile = async (
 
 const server = http.createServer((req, res) => {
   console.log(req.method, req.url, "\n");
+  myEmitter.emit("log", `${req.url}\t${req.method}`, "reqLog.txt");
   const url = req.url || "/";
 
   const extension: string = path.extname(url);
@@ -107,11 +121,3 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, () => {
   console.log(`Server Runnning on ${PORT}`);
 });
-
-// const myEmitter = new EventEmitter();
-
-// myEmitter.on("log", (msg) => {
-//   logEvents(msg);
-// });
-
-// myEmitter.emit("log", "Hello World");

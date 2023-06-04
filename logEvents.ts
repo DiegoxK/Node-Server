@@ -2,7 +2,7 @@ import { v4 as uuid } from "uuid";
 import fs, { promises as fsPromises } from "fs";
 import path from "path";
 
-const logEvents = async (message: string) => {
+const logEvents = async (message: string, logName: string) => {
   const date = new Date();
 
   const timeFormatter = new Intl.DateTimeFormat("en-US", {
@@ -28,10 +28,7 @@ const logEvents = async (message: string) => {
       await fsPromises.mkdir(path.join(__dirname, "logs"));
     }
     //appends content to a file, creates a file if it doesn't exist
-    await fsPromises.appendFile(
-      path.join(__dirname, "logs", "eventLog.txt"),
-      logItem
-    );
+    await fsPromises.appendFile(path.join(__dirname, "logs", logName), logItem);
   } catch (error) {
     console.error(error);
   }
