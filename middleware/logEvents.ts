@@ -1,8 +1,9 @@
+import { Request, Response, NextFunction } from "express";
 import { v4 as uuid } from "uuid";
 import fs, { promises as fsPromises } from "fs";
 import path from "path";
 
-const logEvents = async (message: string) => {
+export const logEvents = async (message: string, logName: string) => {
   const date = new Date();
 
   const timeFormatter = new Intl.DateTimeFormat("en-US", {
@@ -24,12 +25,12 @@ const logEvents = async (message: string) => {
   const logItem: string = `${timeString} - ${uuid()} - ${dateString} - ${message}\n`;
 
   try {
-    if (!fs.existsSync(path.join(__dirname, "logs"))) {
-      await fsPromises.mkdir(path.join(__dirname, "logs"));
+    if (!fs.existsSync(path.join(__dirname, "..", "logs"))) {
+      await fsPromises.mkdir(path.join(__dirname, "..", "logs"));
     }
     //appends content to a file, creates a file if it doesn't exist
     await fsPromises.appendFile(
-      path.join(__dirname, "logs", "eventLog.txt"),
+      path.join(__dirname, "..", "logs", logName),
       logItem
     );
   } catch (error) {
@@ -37,4 +38,7 @@ const logEvents = async (message: string) => {
   }
 };
 
-export default logEvents;
+export const logger = (req: Request, _res: Response, next: NextFunction) => {
+  logEvents(`${req.method}\t${req.headers.origin}\t${req.url}`, "reqLog.txt");
+  next();
+};

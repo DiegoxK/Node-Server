@@ -1,117 +1,65 @@
-import http from "http";
+import express from "express";
 import path from "path";
-import EventEmitter from "events";
-import logEvents from "./logEvents";
-import fs, { promises as fsPromises } from "fs";
+import cors, { CorsOptions } from "cors";
+import { logger } from "./middleware/logEvents";
+import "dotenv/config";
+import errorHandler from "./middleware/errorHandler";
 
+//constants
+const app = express();
 const PORT = process.env.PORT || 3500;
 
-const serveFile = async (
-  filePath: string,
-  contentType: string,
-  response: http.ServerResponse<http.IncomingMessage>
-) => {
-  try {
-    const encoding: BufferEncoding = !contentType.includes("image")
-      ? "utf8"
-      : "binary";
-    const rawData = await fsPromises.readFile(filePath, encoding);
-    const data = rawData;
-    response.writeHead(filePath.includes("404.html") ? 404 : 200, {
-      "Content-Type": contentType,
-    });
-    response.end(data, encoding);
-  } catch (error) {
-    console.log(error);
-    response.statusCode = 500;
-    response.end();
-  }
+//=============================== middlewares =========================//
+//Custom Logger
+app.use(logger);
+
+//Cross Origin Resource Sharing
+const whitelist = [""];
+
+const corsOptions: CorsOptions = {
+  origin: (requestOrigin, callback) => {
+    if (process.env.NODE_ENV === "development") {
+      callback(null, true);
+    } else if (requestOrigin === undefined || requestOrigin === null) {
+      callback(new Error("Invalid Origin"));
+    } else if (whitelist.indexOf(requestOrigin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Origin not allowed by CORS"));
+    }
+  },
+  optionsSuccessStatus: 200,
 };
 
-const server = http.createServer((req, res) => {
-  console.log(req.method, req.url, "\n");
-  const url = req.url || "/";
+app.use(cors(corsOptions));
 
-  const extension: string = path.extname(url);
+//json responses
+app.use(express.json());
 
-  let contentType: string;
+//handle urlencoded data (form data)
+app.use(express.urlencoded({ extended: false }));
 
-  switch (extension) {
-    case ".css":
-      contentType = "text/css";
-      break;
-    case ".js":
-      contentType = "text/javascript";
-      break;
-    case ".json":
-      contentType = "application/json";
-      break;
-    case ".ico":
-      contentType = "image/x-icon";
-      break;
-    case ".png":
-      contentType = "image/png";
-      break;
-    case ".webp":
-      contentType = "image/webp";
-      break;
-    case ".jpg":
-      contentType = "image/jpg";
-      break;
-    case ".txt":
-      contentType = "text/plain";
-      break;
-    default:
-      contentType = "text/html";
-  }
+////============================ static files =========================//
+app.use(express.static(path.join(__dirname, "public")));
 
-  let filePath =
-    contentType === "text/html" && url === "/"
-      ? path.join(__dirname, "views", "index.html")
-      : contentType === "text/html" && url.slice(-1) === "/"
-      ? path.join(__dirname, "views", url, "index.html")
-      : contentType === "text/html"
-      ? path.join(__dirname, "views", url)
-      : path.join(__dirname, url);
-
-  if (!extension && url.slice(-1) !== "/") filePath += ".html";
-
-  const fileExists = fs.existsSync(filePath);
-  // console.log(filePath);
-  if (fileExists) {
-    serveFile(filePath, contentType, res);
-  } else {
-    //301 redirect
-    switch (path.parse(filePath).base) {
-      case "old-page.html":
-        res.writeHead(301, {
-          Location: "/new-page.html",
-        });
-        res.end();
-        break;
-      default:
-        serveFile(path.join(__dirname, "views", "404.html"), "text/html", res);
-    }
-  }
-
-  // if (req.url === "/" || req.url === "index.html") {
-  //   res.statusCode = 200;
-  //   res.setHeader("Content-Type", "text/html");
-  //   filePath = path.join(__dirname, "views", "index.html");
-  //   fs.readFile(filePath, "utf-8", (_error, data) => {
-  //     res.end(data);
-  //   });
-  // }
+//routes
+app.get("^/$|/index(.html)?", (_req, res) => {
+  res.sendFile(path.join(__dirname, "views", "index.html"));
 });
 
-server.listen(PORT, () => {
-  console.log(`Server Runnning on ${PORT}`);
+app.get("/new-page(.html)?", (_req, res) => {
+  res.sendFile(path.join(__dirname, "views", "new-page.html"));
 });
 
-// const myEmitter = new EventEmitter();
+app.get("/old-page(.html)?", (_req, res) => {
+  res.redirect(301, "/new-page.html");
+});
 
-// myEmitter.on("log", (msg) => {
-//   logEvents(msg);
-// });
+app.all("*", (_req, res) => {
+  res.status(404).sendFile(path.join(__dirname, "views", "404.html"));
+});
 
-// myEmitter.emit("log", "Hello World");
+//error handler
+app.use(errorHandler);
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
