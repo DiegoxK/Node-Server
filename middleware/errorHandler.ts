@@ -1,7 +1,7 @@
 import { ErrorRequestHandler } from "express";
 import { logEvents } from "./logEvents";
 
-const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
+const errorHandler: ErrorRequestHandler = (err, req, res) => {
   logEvents(
     `${req.method}\t${req.headers.origin}\t${req.url}\t${err.name}:\t${err.message}`,
     "errLog.txt"
