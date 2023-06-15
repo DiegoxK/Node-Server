@@ -1,9 +1,13 @@
 import express from "express";
 import path from "path";
-import cors, { CorsOptions } from "cors";
+import cors from "cors";
 import { logger } from "./middleware/logEvents";
 import "dotenv/config";
+import subdir from "./routes/subdir";
+import root from "./routes/root";
+import employees from "./routes/api/employees";
 import errorHandler from "./middleware/errorHandler";
+import corsOptions from "./config/corsOptions";
 
 //constants
 const app = express();
@@ -14,23 +18,6 @@ const PORT = process.env.PORT || 3500;
 app.use(logger);
 
 //Cross Origin Resource Sharing
-const whitelist = [""];
-
-const corsOptions: CorsOptions = {
-  origin: (requestOrigin, callback) => {
-    if (process.env.NODE_ENV === "development") {
-      callback(null, true);
-    } else if (requestOrigin === undefined || requestOrigin === null) {
-      callback(new Error("Invalid Origin"));
-    } else if (whitelist.indexOf(requestOrigin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("Origin not allowed by CORS"));
-    }
-  },
-  optionsSuccessStatus: 200,
-};
-
 app.use(cors(corsOptions));
 
 //json responses
@@ -40,20 +27,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 ////============================ static files =========================//
+//serve static files
 app.use(express.static(path.join(__dirname, "public")));
 
 //routes
-app.get("^/$|/index(.html)?", (_req, res) => {
-  res.sendFile(path.join(__dirname, "views", "index.html"));
-});
-
-app.get("/new-page(.html)?", (_req, res) => {
-  res.sendFile(path.join(__dirname, "views", "new-page.html"));
-});
-
-app.get("/old-page(.html)?", (_req, res) => {
-  res.redirect(301, "/new-page.html");
-});
+app.use("/", root);
+app.use("/subdir", subdir);
+app.use("employees", employees);
 
 app.all("*", (_req, res) => {
   res.status(404).sendFile(path.join(__dirname, "views", "404.html"));
