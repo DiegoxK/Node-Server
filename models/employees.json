@@ -1,32 +1,30 @@
-{
-  "employees": [
-    {
-      "id": 1,
-      "name": "John Smith",
-      "position": "Software Engineer",
-      "department": "Engineering",
-      "salary": 75000
-    },
-    {
-      "id": 2,
-      "name": "Jane Doe",
-      "position": "Marketing Manager",
-      "department": "Marketing",
-      "salary": 90000
-    },
-    {
-      "id": 3,
-      "name": "Mike Johnson",
-      "position": "Sales Representative",
-      "department": "Sales",
-      "salary": 60000
-    },
-    {
-      "id": 4,
-      "name": "Emily Wilson",
-      "position": "Human Resources Specialist",
-      "department": "Human Resources",
-      "salary": 65000
-    }
-  ]
-}
+[
+  {
+    "id": 1,
+    "name": "John Smith",
+    "position": "Software Engineer",
+    "department": "Engineering",
+    "salary": 75000
+  },
+  {
+    "id": 2,
+    "name": "Jane Doe",
+    "position": "Marketing Manager",
+    "department": "Marketing",
+    "salary": 90000
+  },
+  {
+    "id": 3,
+    "name": "Mike Johnson",
+    "position": "Sales Representative",
+    "department": "Sales",
+    "salary": 60000
+  },
+  {
+    "id": 4,
+    "name": "Emily Wilson",
+    "position": "Human Resources Specialist",
+    "department": "Human Resources",
+    "salary": 65000
+  }
+]

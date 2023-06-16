@@ -3,7 +3,6 @@ import path from "path";
 import cors from "cors";
 import { logger } from "./middleware/logEvents";
 import "dotenv/config";
-import subdir from "./routes/subdir";
 import root from "./routes/root";
 import employees from "./routes/api/employees";
 import errorHandler from "./middleware/errorHandler";
@@ -32,7 +31,6 @@ app.use(express.static(path.join(__dirname, "public")));
 
 //routes
 app.use("/", root);
-app.use("/subdir", subdir);
 app.use("employees", employees);
 
 app.all("*", (_req, res) => {
