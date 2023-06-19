@@ -5,9 +5,12 @@ const router = Router();
 router
   .route("/")
   .get(controller.getAllEmployees)
-  .post(controller.createNewEmployee)
+  .post(controller.createNewEmployee);
+
+router
+  .route("/:id")
+  .get(controller.getEmployee)
   .put(controller.updateEmployee)
   .delete(controller.deleteEmployee);
-router.route("/:id").get();
 
 export default router;
