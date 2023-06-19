@@ -31,7 +31,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 //routes
 app.use("/", root);
-app.use("employees", employees);
+app.use("/employees", employees);
 
 app.all("*", (_req, res) => {
   res.status(404).sendFile(path.join(__dirname, "views", "404.html"));
